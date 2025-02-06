@@ -1,6 +1,7 @@
 package com.example.listmarkerproject;
 
 import android.content.Context;
+import android.content.Intent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -41,7 +42,13 @@ public class MarkerAdapter extends RecyclerView.Adapter<MarkerAdapter.MarkerView
 
         holder.tvCount.setText(String.valueOf(position + 1));
         holder.tvNameMarker.setText(marker.getName());
+        holder.itemView.setOnClickListener(v -> {
+            Intent intent = new Intent(context, DetailsActivity.class);
+            intent.putExtra("marker", marker);
+            context.startActivity(intent);
+        });
     }
+
 
     @Override
     public int getItemCount() {

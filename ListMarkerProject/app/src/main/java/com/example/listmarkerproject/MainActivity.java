@@ -2,6 +2,7 @@ package com.example.listmarkerproject;
 
 import android.annotation.SuppressLint;
 import android.app.Dialog;
+import android.content.Context;
 import android.graphics.Color;
 import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
@@ -24,6 +25,8 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import androidx.lifecycle.ViewModelProvider;
 
+import org.json.JSONException;
+
 public class MainActivity extends AppCompatActivity {
 
     private FloatingActionButton fabAddList;
@@ -40,6 +43,11 @@ public class MainActivity extends AppCompatActivity {
         DataLocalManager.init(this);
 
         fabAddList = findViewById(R.id.fabAddList);
+        updateMarkerList();
+        fabAddList.setOnClickListener(v -> openListMarkerDialog());
+    }
+
+    private void updateMarkerList() {
         rcvListMarker = findViewById(R.id.rcvListMarker);
 
         markerAdapter = new MarkerAdapter(this);
@@ -49,10 +57,7 @@ public class MainActivity extends AppCompatActivity {
         markerViewModel = new ViewModelProvider(this).get(MarkerViewModel.class);
         markerViewModel.getMarkerList().observe(this, markers -> markerAdapter.setData(markers));
 
-        fabAddList.setOnClickListener(v -> openListMarkerDialog());
     }
-
-
     private void openListMarkerDialog() {
         final Dialog dialog = new Dialog(this);
         dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
@@ -75,7 +80,8 @@ public class MainActivity extends AppCompatActivity {
         btnCreate.setOnClickListener(v -> {
             String name = edtNameList.getText().toString().trim();
             if (!name.isEmpty()) {
-                Marker newMarker = new Marker(name);
+                int id = markerViewModel.getMarkerList().getValue() == null ? 1 : markerViewModel.getMarkerList().getValue().size() + 1;
+                Marker newMarker = new Marker(String.valueOf(id), name);
                 markerViewModel.addMarker(newMarker);
 
                 Toast.makeText(this, "Đã thêm: " + name, Toast.LENGTH_SHORT).show();
@@ -87,6 +93,5 @@ public class MainActivity extends AppCompatActivity {
 
         dialog.show();
     }
-
 }
 

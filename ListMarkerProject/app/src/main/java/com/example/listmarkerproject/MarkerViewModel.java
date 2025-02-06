@@ -6,6 +6,8 @@ import androidx.lifecycle.ViewModel;
 
 import com.example.listmarkerproject.sharePreferenes.DataLocalManager;
 
+import org.json.JSONException;
+
 import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
@@ -34,19 +36,17 @@ public class MarkerViewModel extends ViewModel {
     }
 
     private void loadMarkersFromLocal() {
-        Set<String> markerSet = DataLocalManager.getListMarker();
-        List<Marker> markers = new ArrayList<>();
-        for (String name : markerSet) {
-            markers.add(new Marker(name));
+        try {
+            List<Marker> listMarker = DataLocalManager.getListMarker();
+            markerList.setValue(listMarker);
+        } catch (JSONException e) {
+            e.printStackTrace();
         }
-        markerList.setValue(markers);
     }
 
+
     private void saveMarkersToLocal(List<Marker> markers) {
-        Set<String> markerSet = new HashSet<>();
-        for (Marker marker : markers) {
-            markerSet.add(marker.getName());
-        }
-        DataLocalManager.setListMarker(markerSet);
+        DataLocalManager.setListMarker(markers);
     }
+
 }

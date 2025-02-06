@@ -14,19 +14,6 @@ public class MySharedPreferences {
         this.mContext = context;
     }
 
-    public void putBooleanValue(String key, boolean value) {
-        SharedPreferences sharedPreferences = mContext.getSharedPreferences(MY_SHARED_PREFERENCES, Context.MODE_PRIVATE);
-        SharedPreferences.Editor editor = sharedPreferences.edit();
-
-        editor.putBoolean(key, value);
-        editor.apply();
-    }
-
-    public Boolean getBooleanValue(String key) {
-        SharedPreferences sharedPreferences = mContext.getSharedPreferences(MY_SHARED_PREFERENCES, Context.MODE_PRIVATE);
-        return sharedPreferences.getBoolean(key, false);
-    }
-
     public void putStringValue(String key, String value) {
         SharedPreferences sharedPreferences = mContext.getSharedPreferences(MY_SHARED_PREFERENCES, Context.MODE_PRIVATE);
         SharedPreferences.Editor editor = sharedPreferences.edit();
@@ -38,19 +25,5 @@ public class MySharedPreferences {
     public String getStringValue(String key) {
         SharedPreferences sharedPreferences = mContext.getSharedPreferences(MY_SHARED_PREFERENCES, Context.MODE_PRIVATE);
         return sharedPreferences.getString(key, "");
-    }
-
-    public void putStringSetValue(String key, Set<String> value) {
-        SharedPreferences sharedPreferences = mContext.getSharedPreferences(MY_SHARED_PREFERENCES, Context.MODE_PRIVATE);
-        SharedPreferences.Editor editor = sharedPreferences.edit();
-
-        editor.putStringSet(key, value);
-        editor.apply();
-    }
-
-    public Set<String> getStringSetValue(String key) {
-        SharedPreferences sharedPreferences = mContext.getSharedPreferences(MY_SHARED_PREFERENCES, Context.MODE_PRIVATE);
-        Set<String> valueDefault = new HashSet<>();
-        return sharedPreferences.getStringSet(key, valueDefault);
     }
 }

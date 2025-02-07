@@ -1,4 +1,4 @@
-package com.example.listmarkerproject;
+package com.example.listmarkerproject.model;
 
 import android.os.Parcel;
 import android.os.Parcelable;

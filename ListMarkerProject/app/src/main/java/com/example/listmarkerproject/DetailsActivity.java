@@ -1,8 +1,6 @@
 package com.example.listmarkerproject;
 import android.app.Dialog;
 import android.content.Intent;
-import android.graphics.Color;
-import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
 import android.view.Gravity;
 import android.view.Window;
@@ -14,24 +12,31 @@ import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.graphics.Insets;
-import androidx.core.view.ViewCompat;
-import androidx.core.view.WindowInsetsCompat;
+import androidx.lifecycle.ViewModelProvider;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.listmarkerproject.adapter.MarkerAdapter;
+import com.example.listmarkerproject.adapter.MarkerDetailAdapter;
+import com.example.listmarkerproject.model.Marker;
+import com.example.listmarkerproject.model.MarkerDetail;
 import com.example.listmarkerproject.sharePreferenes.DataLocalManager;
+import com.example.listmarkerproject.viewModel.MarkerDetailViewModel;
+import com.example.listmarkerproject.viewModel.MarkerViewModel;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 import org.json.JSONException;
 
-import java.util.ArrayList;
 import java.util.List;
 
 public class DetailsActivity extends AppCompatActivity {
 
     private FloatingActionButton fabAddList;
-    private MarkerViewModel markerViewModel;
+    private RecyclerView rcvListMarkerDetail;
+    private MarkerDetailAdapter markerDetailAdapter;
+    private TextView tvMarkerDetail;
 
-    private TextView tvDetailId, tvDetailName;
+    private MarkerDetailViewModel markerDetailViewModel;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -40,20 +45,28 @@ public class DetailsActivity extends AppCompatActivity {
 
         fabAddList = findViewById(R.id.fabAddList);
 
-        tvDetailId = findViewById(R.id.tvDetailId);
-        tvDetailName = findViewById(R.id.tvDetailName);
-
+        tvMarkerDetail = findViewById(R.id.tvMarkerDetail);
         Intent intent = getIntent();
         Marker marker = intent.getParcelableExtra("marker");
-
-
-        tvDetailId.setText("ID: " + marker.getId());
-        tvDetailName.setText("Name: " + marker.getName());
-
+        tvMarkerDetail.setText(marker.getName());
+        updateMarkerList();
         fabAddList.setOnClickListener(v -> openListMarkerDialog());
     }
+    private void updateMarkerList() {
+        Intent intent = getIntent();
+        Marker marker = intent.getParcelableExtra("marker");
+        rcvListMarkerDetail = findViewById(R.id.rcvListMarkerDetail);
 
+        markerDetailAdapter = new MarkerDetailAdapter(this, marker.getId());
+        rcvListMarkerDetail.setLayoutManager(new LinearLayoutManager(this, RecyclerView.VERTICAL, false));
+        rcvListMarkerDetail.setAdapter(markerDetailAdapter);
+
+        markerDetailViewModel = new ViewModelProvider(this).get(MarkerDetailViewModel.class);
+        markerDetailViewModel.getMarkerDetailList().observe(this, markers -> markerDetailAdapter.setData(markers));
+    }
     private void openListMarkerDialog() {
+        Intent intent = getIntent();
+        Marker marker = intent.getParcelableExtra("marker");
         final Dialog dialog = new Dialog(this);
         dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
         dialog.setContentView(R.layout.layout_dialog_marker);
@@ -62,28 +75,18 @@ public class DetailsActivity extends AppCompatActivity {
         if (window == null) return;
 
         window.setLayout(WindowManager.LayoutParams.MATCH_PARENT, WindowManager.LayoutParams.WRAP_CONTENT);
-        window.setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
         WindowManager.LayoutParams windowAttributes = window.getAttributes();
         windowAttributes.gravity = Gravity.CENTER;
 
         EditText edtNameList = dialog.findViewById(R.id.edtNameList);
-        Button btnCancel = dialog.findViewById(R.id.btnCancel);
         Button btnCreate = dialog.findViewById(R.id.btnCreate);
-
-        btnCancel.setOnClickListener(v -> dialog.dismiss());
 
         btnCreate.setOnClickListener(v -> {
             String name = edtNameList.getText().toString().trim();
             if (!name.isEmpty()) {
-                try {
-                    List<Marker> list = DataLocalManager.getListMarker();
-                    Marker newMarker = new Marker(String.valueOf(list.size()+1), name);
-                    list.add(newMarker);
-                    DataLocalManager.setListMarker(list);
-                    Toast.makeText(this, "Đã thêm: " + name, Toast.LENGTH_SHORT).show();
-                } catch (JSONException e) {
-                    throw new RuntimeException(e);
-                }
+                MarkerDetail newMarkerDetail = new MarkerDetail(marker.getId(), name);
+                markerDetailViewModel.addMarkerDetail(newMarkerDetail);
+                Toast.makeText(this, "Đã thêm: " + name, Toast.LENGTH_SHORT).show();
                 dialog.dismiss();
             } else {
                 Toast.makeText(this, "Vui lòng nhập tên danh sách!", Toast.LENGTH_SHORT).show();

@@ -1,4 +1,4 @@
-package com.example.listmarkerproject;
+package com.example.listmarkerproject.adapter;
 
 import android.content.Context;
 import android.content.Intent;
@@ -8,8 +8,11 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
-import androidx.cardview.widget.CardView;
 import androidx.recyclerview.widget.RecyclerView;
+
+import com.example.listmarkerproject.DetailsActivity;
+import com.example.listmarkerproject.R;
+import com.example.listmarkerproject.model.Marker;
 
 import java.util.List;
 
@@ -57,7 +60,6 @@ public class MarkerAdapter extends RecyclerView.Adapter<MarkerAdapter.MarkerView
     }
 
     public class MarkerViewHolder extends RecyclerView.ViewHolder {
-
         private TextView tvNameMarker, tvCount;
         public MarkerViewHolder(@NonNull View itemView) {
             super(itemView);

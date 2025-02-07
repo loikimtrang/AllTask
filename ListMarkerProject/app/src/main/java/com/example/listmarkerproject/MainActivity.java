@@ -1,13 +1,8 @@
 package com.example.listmarkerproject;
 
-import android.annotation.SuppressLint;
 import android.app.Dialog;
-import android.content.Context;
-import android.graphics.Color;
-import android.graphics.drawable.ColorDrawable;
 import android.os.Bundle;
 import android.view.Gravity;
-import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.Button;
@@ -19,13 +14,14 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.listmarkerproject.adapter.MarkerAdapter;
+import com.example.listmarkerproject.model.Marker;
 import com.example.listmarkerproject.sharePreferenes.DataLocalManager;
+import com.example.listmarkerproject.viewModel.MarkerViewModel;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 
 import androidx.lifecycle.ViewModelProvider;
-
-import org.json.JSONException;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -67,15 +63,11 @@ public class MainActivity extends AppCompatActivity {
         if (window == null) return;
 
         window.setLayout(WindowManager.LayoutParams.MATCH_PARENT, WindowManager.LayoutParams.WRAP_CONTENT);
-        window.setBackgroundDrawable(new ColorDrawable(Color.TRANSPARENT));
         WindowManager.LayoutParams windowAttributes = window.getAttributes();
         windowAttributes.gravity = Gravity.CENTER;
 
         EditText edtNameList = dialog.findViewById(R.id.edtNameList);
-        Button btnCancel = dialog.findViewById(R.id.btnCancel);
         Button btnCreate = dialog.findViewById(R.id.btnCreate);
-
-        btnCancel.setOnClickListener(v -> dialog.dismiss());
 
         btnCreate.setOnClickListener(v -> {
             String name = edtNameList.getText().toString().trim();
@@ -92,6 +84,12 @@ public class MainActivity extends AppCompatActivity {
         });
 
         dialog.show();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        markerViewModel.loadMarkersFromLocal();
     }
 }
 

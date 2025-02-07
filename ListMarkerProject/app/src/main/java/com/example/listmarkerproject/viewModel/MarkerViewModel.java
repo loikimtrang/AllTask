@@ -1,17 +1,16 @@
-package com.example.listmarkerproject;
+package com.example.listmarkerproject.viewModel;
 
 import androidx.lifecycle.LiveData;
 import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.ViewModel;
 
+import com.example.listmarkerproject.model.Marker;
 import com.example.listmarkerproject.sharePreferenes.DataLocalManager;
 
 import org.json.JSONException;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
 
 public class MarkerViewModel extends ViewModel {
 
@@ -35,7 +34,7 @@ public class MarkerViewModel extends ViewModel {
         saveMarkersToLocal(currentList);
     }
 
-    private void loadMarkersFromLocal() {
+    public void loadMarkersFromLocal() {
         try {
             List<Marker> listMarker = DataLocalManager.getListMarker();
             markerList.setValue(listMarker);

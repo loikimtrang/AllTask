@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_margin="16dp"
+    android:orientation="vertical">
+
+    <TextView
+        android:id="@+id/tvTiltleInto"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="What is the name of your list?"
+        android:textSize="20sp"
+        android:gravity="center"/>
+
+    <EditText
+        android:layout_below="@+id/tvTiltleInto"
+        android:id="@+id/edtNameList"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:layout_margin="16dp"
+        android:textSize="14sp"/>
+
+    <Button
+        android:id="@+id/btnCreate"
+        android:layout_below="@id/edtNameList"
+        android:layout_alignEnd="@id/edtNameList"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:textSize="20sp"
+        android:background="@android:color/transparent"
+        android:textColor="#6300EE"
+        android:text="Create" />
+
+</RelativeLayout>

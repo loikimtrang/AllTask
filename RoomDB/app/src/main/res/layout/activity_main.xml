@@ -32,6 +32,6 @@
         </androidx.recyclerview.widget.RecyclerView>
     </RelativeLayout>
 
-    <include layout="@layout/layout_fab_create_marker" />
+    <include layout="@layout/layout_fab_create_marker"/>
 
 </RelativeLayout>

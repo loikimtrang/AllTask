@@ -5,8 +5,6 @@ import android.os.Bundle;
 import android.view.Gravity;
 import android.view.Window;
 import android.view.WindowManager;
-import android.widget.Button;
-import android.widget.EditText;
 import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
@@ -16,14 +14,18 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.roomdb.adapter.MarkerAdapter;
+import com.example.roomdb.databinding.ActivityMainBinding;
+import com.example.roomdb.databinding.LayoutDialogMarkerBinding;
+import com.example.roomdb.databinding.LayoutFabCreateMarkerBinding;
 import com.example.roomdb.model.Marker;
 import com.example.roomdb.viewModel.MarkerViewModel;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 
 public class MainActivity extends AppCompatActivity {
 
-    private FloatingActionButton fabAddList;
-    private RecyclerView rcvListMarker;
+    private ActivityMainBinding mActivityMainBinding;
+
+    private FloatingActionButton fab;
     private MarkerAdapter markerAdapter;
     private MarkerViewModel markerViewModel;
 
@@ -31,19 +33,24 @@ public class MainActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        EdgeToEdge.enable(this);
-        setContentView(R.layout.activity_main);
 
-        fabAddList = findViewById(R.id.fabAddList);
+        mActivityMainBinding = ActivityMainBinding.inflate(getLayoutInflater());
+        setContentView(mActivityMainBinding.getRoot());
+
+        EdgeToEdge.enable(this);
+
+        fab = findViewById(R.id.fabAddList);
+
         updateMarkerList();
-        fabAddList.setOnClickListener(v -> openListMarkerDialog());
+
+        fab.setOnClickListener(v -> openListMarkerDialog());
     }
+
     private void updateMarkerList() {
-        rcvListMarker = findViewById(R.id.rcvListMarker);
 
         markerAdapter = new MarkerAdapter(this);
-        rcvListMarker.setLayoutManager(new LinearLayoutManager(this, RecyclerView.VERTICAL, false));
-        rcvListMarker.setAdapter(markerAdapter);
+        mActivityMainBinding.rcvListMarker.setLayoutManager(new LinearLayoutManager(this, RecyclerView.VERTICAL, false));
+        mActivityMainBinding.rcvListMarker.setAdapter(markerAdapter);
 
         markerViewModel = new ViewModelProvider(this).get(MarkerViewModel.class);
         markerViewModel.getMarkerList().observe(this, markers -> markerAdapter.setData(markers));
@@ -52,7 +59,9 @@ public class MainActivity extends AppCompatActivity {
     private void openListMarkerDialog() {
         final Dialog dialog = new Dialog(this);
         dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
-        dialog.setContentView(R.layout.layout_dialog_marker);
+
+        LayoutDialogMarkerBinding dialogBinding = LayoutDialogMarkerBinding.inflate(getLayoutInflater());
+        dialog.setContentView(dialogBinding.getRoot());
 
         Window window = dialog.getWindow();
         if (window == null) return;
@@ -61,11 +70,8 @@ public class MainActivity extends AppCompatActivity {
         WindowManager.LayoutParams windowAttributes = window.getAttributes();
         windowAttributes.gravity = Gravity.CENTER;
 
-        EditText edtNameList = dialog.findViewById(R.id.edtNameList);
-        Button btnCreate = dialog.findViewById(R.id.btnCreate);
-
-        btnCreate.setOnClickListener(v -> {
-            String name = edtNameList.getText().toString().trim();
+        dialogBinding.btnCreate.setOnClickListener(v -> {
+            String name = dialogBinding.edtNameList.getText().toString().trim();
             if (!name.isEmpty()) {
                 Marker newMarker = new Marker(name);
                 markerViewModel.addMarker(newMarker);

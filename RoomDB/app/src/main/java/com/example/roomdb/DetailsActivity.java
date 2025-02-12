@@ -19,6 +19,8 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.example.roomdb.adapter.MarkerDetailAdapter;
+import com.example.roomdb.databinding.ActivityDetailsBinding;
+import com.example.roomdb.databinding.LayoutDialogMarkerBinding;
 import com.example.roomdb.model.MarkerDetail;
 import com.example.roomdb.viewModel.MarkerDetailViewModel;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
@@ -26,8 +28,9 @@ import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.example.roomdb.model.Marker;
 public class DetailsActivity extends AppCompatActivity {
 
-    private FloatingActionButton fabAddList;
-    private RecyclerView rcvListMarkerDetail;
+    private ActivityDetailsBinding mActivityDetailsBinding;
+
+    private FloatingActionButton fab;
     private MarkerDetailAdapter markerDetailAdapter;
 
     private TextView tvMarkerDetail;
@@ -37,27 +40,26 @@ public class DetailsActivity extends AppCompatActivity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        mActivityDetailsBinding = ActivityDetailsBinding.inflate(getLayoutInflater());
+        setContentView(mActivityDetailsBinding.getRoot());
         EdgeToEdge.enable(this);
-        setContentView(R.layout.activity_details);
-
-        fabAddList = findViewById(R.id.fabAddList);
-
-        tvMarkerDetail = findViewById(R.id.tvMarkerDetail);
 
         Intent intent = getIntent();
         Marker marker = intent.getParcelableExtra("marker");
-        tvMarkerDetail.setText(marker.getName());
+        mActivityDetailsBinding.tvMarkerDetail.setText(marker.getName());
         updateMarkerList();
-        fabAddList.setOnClickListener(v -> openListMarkerDialog());
+
+        fab = findViewById(R.id.fabAddList);
+
+        fab.setOnClickListener(v -> openListMarkerDialog());
     }
     private void updateMarkerList() {
         Intent intent = getIntent();
         Marker marker = intent.getParcelableExtra("marker");
-        rcvListMarkerDetail = findViewById(R.id.rcvListMarkerDetail);
 
         markerDetailAdapter = new MarkerDetailAdapter(this, marker.getId());
-        rcvListMarkerDetail.setLayoutManager(new LinearLayoutManager(this, RecyclerView.VERTICAL, false));
-        rcvListMarkerDetail.setAdapter(markerDetailAdapter);
+        mActivityDetailsBinding.rcvListMarkerDetail.setLayoutManager(new LinearLayoutManager(this, RecyclerView.VERTICAL, false));
+        mActivityDetailsBinding.rcvListMarkerDetail.setAdapter(markerDetailAdapter);
 
         markerDetailViewModel = new ViewModelProvider(this).get(MarkerDetailViewModel.class);
         markerDetailViewModel.getMarkerDetailList().observe(this, markers -> markerDetailAdapter.setData(markers));
@@ -67,7 +69,9 @@ public class DetailsActivity extends AppCompatActivity {
         Marker marker = intent.getParcelableExtra("marker");
         final Dialog dialog = new Dialog(this);
         dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
-        dialog.setContentView(R.layout.layout_dialog_marker);
+
+        LayoutDialogMarkerBinding dialogBinding = LayoutDialogMarkerBinding.inflate(getLayoutInflater());
+        dialog.setContentView(dialogBinding.getRoot());
 
         Window window = dialog.getWindow();
         if (window == null) return;
@@ -76,11 +80,8 @@ public class DetailsActivity extends AppCompatActivity {
         WindowManager.LayoutParams windowAttributes = window.getAttributes();
         windowAttributes.gravity = Gravity.CENTER;
 
-        EditText edtNameList = dialog.findViewById(R.id.edtNameList);
-        Button btnCreate = dialog.findViewById(R.id.btnCreate);
-
-        btnCreate.setOnClickListener(v -> {
-            String name = edtNameList.getText().toString().trim();
+        dialogBinding.btnCreate.setOnClickListener(v -> {
+            String name = dialogBinding.edtNameList.getText().toString().trim();
             if (!name.isEmpty()) {
                 MarkerDetail newMarkerDetail = new MarkerDetail(marker.getId(), name);
                 markerDetailViewModel.addMarkerDetail(newMarkerDetail);

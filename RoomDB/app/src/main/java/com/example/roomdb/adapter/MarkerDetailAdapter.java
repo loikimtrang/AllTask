@@ -1,15 +1,15 @@
 package com.example.roomdb.adapter;
-
 import android.content.Context;
 import android.view.LayoutInflater;
+import android.view.MotionEvent;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
-
-import com.example.roomdb.R;
+import com.example.roomdb.databinding.ItemMarkerDetailBinding;
+import com.example.roomdb.model.Marker;
 import com.example.roomdb.model.MarkerDetail;
 
 import java.util.ArrayList;
@@ -20,11 +20,18 @@ public class MarkerDetailAdapter extends RecyclerView.Adapter<MarkerDetailAdapte
     private Context context;
     private List<MarkerDetail> markerDetailList;
 
+    private IClickItemMarkerDetail iClickItemMarkerDetail;
+    public interface IClickItemMarkerDetail {
+        void updateMarkerDetail(MarkerDetail markerDetail);
+        void deleteMarkerDetail(MarkerDetail markerDetail);
+    }
+
     private int idMarker;
 
-    public MarkerDetailAdapter(Context context, int idMarker) {
+    public MarkerDetailAdapter(Context context, int idMarker, IClickItemMarkerDetail iClickItemMarkerDetail) {
         this.context = context;
         this.idMarker = idMarker;
+        this.iClickItemMarkerDetail = iClickItemMarkerDetail;
     }
     public void setData(List<MarkerDetail> listMarkerDetail) {
         List<MarkerDetail> list = new ArrayList<>();
@@ -41,14 +48,21 @@ public class MarkerDetailAdapter extends RecyclerView.Adapter<MarkerDetailAdapte
     @NonNull
     @Override
     public MarkerDetailViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
-        View view = LayoutInflater.from(parent.getContext()).inflate(R.layout.item_marker_detail, parent, false);
-        return new MarkerDetailViewHolder(view);
+        LayoutInflater inflater = LayoutInflater.from(parent.getContext());
+        ItemMarkerDetailBinding binding = ItemMarkerDetailBinding.inflate(inflater, parent, false);
+        return new MarkerDetailViewHolder(binding);
     }
 
     @Override
     public void onBindViewHolder(@NonNull MarkerDetailViewHolder holder, int position) {
         MarkerDetail markerDetail = markerDetailList.get(position);
-        holder.tvNameMarkerDetail.setText(markerDetail.getName());
+        holder.binding.tvNameMarkerDetail.setText(markerDetail.getName());
+
+        holder.binding.btnEditMarkerDetail.setOnClickListener(v -> { iClickItemMarkerDetail.updateMarkerDetail(markerDetail);});
+        holder.itemView.setOnLongClickListener(v -> {
+            iClickItemMarkerDetail.deleteMarkerDetail(markerDetail);
+            return true;
+        });
     }
 
     @Override
@@ -57,10 +71,11 @@ public class MarkerDetailAdapter extends RecyclerView.Adapter<MarkerDetailAdapte
     }
 
     public class MarkerDetailViewHolder extends RecyclerView.ViewHolder {
-        private TextView tvNameMarkerDetail;
-        public MarkerDetailViewHolder(@NonNull View itemView) {
-            super(itemView);
-            tvNameMarkerDetail = itemView.findViewById(R.id.tvNameMarkerDetail);
+
+        private final ItemMarkerDetailBinding binding;
+        public MarkerDetailViewHolder(@NonNull ItemMarkerDetailBinding binding) {
+            super(binding.getRoot());
+            this.binding = binding;
         }
     }
 }

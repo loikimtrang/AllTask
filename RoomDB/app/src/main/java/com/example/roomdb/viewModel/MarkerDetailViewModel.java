@@ -14,6 +14,7 @@ import java.util.List;
 
 public class MarkerDetailViewModel extends AndroidViewModel {
     private final MarkerDetailDatabase database;
+
     private final MutableLiveData<List<MarkerDetail>> markerDetailList = new MutableLiveData<>();
 
     public MarkerDetailViewModel(Application application) {
@@ -28,6 +29,15 @@ public class MarkerDetailViewModel extends AndroidViewModel {
 
     public void addMarkerDetail(MarkerDetail markerDetail) {
         database.markerDetailDAO().insertMarkerDetail(markerDetail);
+        loadMarkersDetailFromDataBase();
+    }
+    public void updateMarkerDetail(MarkerDetail markerDetail) {
+        database.markerDetailDAO().updateMarkerDetail(markerDetail);
+        loadMarkersDetailFromDataBase();
+    }
+
+    public void deleteMarkerDetail(MarkerDetail markerDetail) {
+        database.markerDetailDAO().deleteMarkerDetail(markerDetail);
         loadMarkersDetailFromDataBase();
     }
 

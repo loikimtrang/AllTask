@@ -12,5 +12,13 @@
         android:layout_centerVertical="true"
         android:textColor="#BFBFBF"
         android:layout_marginStart="16dp"/>
-
+    <ImageButton
+        android:id="@+id/btnEditMarkerDetail"
+        android:layout_width="52dp"
+        android:layout_height="52dp"
+        android:layout_alignParentRight="true"
+        android:layout_marginEnd="20dp"
+        android:src="@drawable/btn_edit"
+        android:background="@android:color/transparent"
+        android:layout_centerVertical="true"/>
 </RelativeLayout>

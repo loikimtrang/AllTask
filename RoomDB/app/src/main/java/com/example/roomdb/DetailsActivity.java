@@ -1,6 +1,8 @@
 package com.example.roomdb;
 
+import android.app.AlertDialog;
 import android.app.Dialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.os.Bundle;
 
@@ -21,6 +23,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.roomdb.adapter.MarkerDetailAdapter;
 import com.example.roomdb.databinding.ActivityDetailsBinding;
 import com.example.roomdb.databinding.LayoutDialogMarkerBinding;
+import com.example.roomdb.databinding.LayoutDialogUpdateMarkerBinding;
 import com.example.roomdb.model.MarkerDetail;
 import com.example.roomdb.viewModel.MarkerDetailViewModel;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
@@ -32,8 +35,6 @@ public class DetailsActivity extends AppCompatActivity {
 
     private FloatingActionButton fab;
     private MarkerDetailAdapter markerDetailAdapter;
-
-    private TextView tvMarkerDetail;
 
     private MarkerDetailViewModel markerDetailViewModel;
 
@@ -57,7 +58,17 @@ public class DetailsActivity extends AppCompatActivity {
         Intent intent = getIntent();
         Marker marker = intent.getParcelableExtra("marker");
 
-        markerDetailAdapter = new MarkerDetailAdapter(this, marker.getId());
+        markerDetailAdapter = new MarkerDetailAdapter(this, marker.getId(), new MarkerDetailAdapter.IClickItemMarkerDetail() {
+            @Override
+            public void updateMarkerDetail(MarkerDetail markerDetail) {
+                clickUpdateMarkerDetail(markerDetail);
+            }
+
+            @Override
+            public void deleteMarkerDetail(MarkerDetail markerDetail) {
+                onLongClickDeleteMarkerDetail(markerDetail);
+            }
+        });
         mActivityDetailsBinding.rcvListMarkerDetail.setLayoutManager(new LinearLayoutManager(this, RecyclerView.VERTICAL, false));
         mActivityDetailsBinding.rcvListMarkerDetail.setAdapter(markerDetailAdapter);
 
@@ -93,5 +104,50 @@ public class DetailsActivity extends AppCompatActivity {
         });
 
         dialog.show();
+    }
+    private void openUpdateMarkerDetailDialog(MarkerDetail markerDetail) {
+        final Dialog dialog = new Dialog(this);
+        dialog.requestWindowFeature(Window.FEATURE_NO_TITLE);
+
+        LayoutDialogUpdateMarkerBinding binding = LayoutDialogUpdateMarkerBinding.inflate(getLayoutInflater());
+        dialog.setContentView(binding.getRoot());
+
+        Window window = dialog.getWindow();
+        if (window == null) return;
+
+        window.setLayout(WindowManager.LayoutParams.MATCH_PARENT, WindowManager.LayoutParams.WRAP_CONTENT);
+        WindowManager.LayoutParams windowAttributes = window.getAttributes();
+        windowAttributes.gravity = Gravity.CENTER;
+
+        binding.edtNameList.setText(markerDetail.getName());
+        binding.btnCancel.setOnClickListener(v -> {
+            dialog.dismiss();
+        });
+
+        binding.btnUpdate.setOnClickListener(v -> {
+            String name = binding.edtNameList.getText().toString().trim();
+            if (!name.isEmpty()) {
+                markerDetail.setName(name);
+                markerDetailViewModel.updateMarkerDetail(markerDetail);
+
+                Toast.makeText(this, "Đã chỉnh sửa: " + name, Toast.LENGTH_SHORT).show();
+                dialog.dismiss();
+            } else {
+                Toast.makeText(this, "Vui lòng nhập tên danh sách!", Toast.LENGTH_SHORT).show();
+            }
+        });
+
+        dialog.show();
+    }
+    void clickUpdateMarkerDetail(MarkerDetail markerDetail) {
+        openUpdateMarkerDetailDialog(markerDetail);
+    }
+    void onLongClickDeleteMarkerDetail(MarkerDetail markerDetail) {
+        new AlertDialog.Builder(this)
+                .setTitle("Confirm delete")
+                .setMessage("Are you sure ?")
+                .setPositiveButton("Yes", (dialogInterface, i) -> markerDetailViewModel.deleteMarkerDetail(markerDetail))
+                .setNegativeButton("No", null)
+                .show();
     }
 }

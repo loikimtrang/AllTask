@@ -25,4 +25,14 @@
         android:layout_toEndOf="@+id/tvCount"
         android:layout_marginStart="16dp"/>
 
+    <ImageButton
+        android:id="@+id/btnEditMarker"
+        android:layout_width="52dp"
+        android:layout_height="52dp"
+        android:layout_alignParentRight="true"
+        android:layout_marginEnd="20dp"
+        android:src="@drawable/btn_edit"
+        android:background="@android:color/transparent"
+        android:layout_centerVertical="true"/>
+
 </RelativeLayout>

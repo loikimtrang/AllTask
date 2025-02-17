@@ -86,7 +86,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                     .title(poi.name));
 
             if (marker != null) {
-                fetchPlacePhotoAndShow(marker, poi.placeId);
+                getImagePlace(marker, poi.placeId);
             }
         });
     }
@@ -102,7 +102,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             }
         }
     }
-    private void fetchPlacePhotoAndShow(Marker marker, String placeId) {
+    private void getImagePlace(Marker marker, String placeId) {
         FetchPlaceRequest request = FetchPlaceRequest.newInstance(placeId, Arrays.asList(Place.Field.PHOTO_METADATAS));
 
         placesClient.fetchPlace(request).addOnSuccessListener(response -> {

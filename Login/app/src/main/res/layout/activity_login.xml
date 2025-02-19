@@ -1,0 +1,170 @@
+<?xml version="1.0" encoding="utf-8"?>
+<layout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools">
+
+    <data>
+        <variable
+            name="viewModel"
+            type="com.example.login.viewModel.LoginViewModel" />
+    </data>
+
+    <RelativeLayout
+        android:id="@+id/main"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        tools:context=".MainActivity"
+        android:background="#FFFFFF">
+
+        <RelativeLayout
+            android:id="@+id/logo"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:background="@drawable/background_logo_login">
+
+            <ImageView
+                android:id="@+id/imgLogo"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:src="@drawable/logo_login"
+                android:layout_centerHorizontal="true"
+                android:layout_marginTop="52dp"/>
+        </RelativeLayout>
+
+        <LinearLayout
+            android:id="@+id/formLogin"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_below="@id/logo"
+            android:orientation="vertical"
+            android:layout_marginTop="28dp"
+            android:layout_marginHorizontal="16dp">
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="ID cửa hàng"
+                android:textSize="16sp"
+                android:textColor="#454545"
+                android:layout_marginBottom="8dp"/>
+
+            <EditText
+                android:layout_width="match_parent"
+                android:layout_height="45dp"
+                android:background="@drawable/background_input_radius_8"
+                android:textSize="16sp"
+                android:textColor="#454545"
+                android:paddingHorizontal="16dp"
+                android:layout_marginBottom="8dp"
+                android:text="@={viewModel.shopId}"/>
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Người dùng"
+                android:textSize="16sp"
+                android:textColor="#454545"
+                android:layout_marginBottom="8dp"/>
+
+            <EditText
+                android:layout_width="match_parent"
+                android:layout_height="45dp"
+                android:background="@drawable/background_input_radius_8"
+                android:textSize="16sp"
+                android:textColor="#454545"
+                android:paddingHorizontal="16dp"
+                android:layout_marginBottom="8dp"
+                android:text="@={viewModel.username}"/>
+
+            <TextView
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Mật mã"
+                android:textSize="16sp"
+                android:textColor="#454545"
+                android:layout_marginBottom="8dp"/>
+
+            <RelativeLayout
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content">
+
+                <EditText
+                    android:layout_width="match_parent"
+                    android:layout_height="45dp"
+                    android:background="@drawable/background_input_radius_8"
+                    android:textSize="16sp"
+                    android:textColor="#454545"
+                    android:paddingHorizontal="16dp"
+                    android:inputType="textPassword"
+                    android:text="@={viewModel.password}"/>
+
+                <ImageView
+                    android:id="@+id/btnTogglePassword"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:src="@drawable/ic_eye_close"
+                    android:layout_alignParentEnd="true"
+                    android:layout_centerVertical="true"
+                    android:padding="4dp"
+                    android:layout_marginEnd="16dp"/>
+            </RelativeLayout>
+
+            <LinearLayout
+                android:id="@+id/qrLoginContainer"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:orientation="horizontal"
+                android:gravity="center"
+                android:layout_marginTop="8dp">
+
+                <ImageView
+                    android:id="@+id/imgQrLogin"
+                    android:layout_width="wrap_content"
+                    android:layout_height="wrap_content"
+                    android:src="@drawable/qr_login"/>
+
+                <TextView
+                    android:id="@+id/tvQrLogin"
+                    android:layout_width="match_parent"
+                    android:layout_height="wrap_content"
+                    android:text="Đăng nhập bằng mã QR"
+                    android:textSize="16sp"
+                    android:textColor="#454545"
+                    android:layout_marginStart="10dp"/>
+            </LinearLayout>
+
+        </LinearLayout>
+
+        <RelativeLayout
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_below="@id/formLogin"
+            android:layout_marginTop="1dp"
+            android:layout_marginHorizontal="16dp"
+            android:layout_marginVertical="20dp">
+
+            <androidx.appcompat.widget.AppCompatButton
+                android:id="@+id/btnLogin"
+                android:layout_width="match_parent"
+                android:layout_height="45dp"
+                android:background="@drawable/background_blue_radius_8"
+                android:text="Đăng nhập"
+                android:textColor="@android:color/white"
+                android:textSize="16sp"
+                android:onClick="@{() -> viewModel.onLoginClick()}" />
+
+            <TextView
+                android:id="@+id/tvForgotPassword"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Quên mật khẩu?"
+                android:textSize="16sp"
+                android:textColor="#1677FF"
+                android:layout_marginStart="10dp"
+                android:layout_alignParentEnd="true"
+                android:layout_alignParentBottom="true"
+                android:layout_marginBottom="8dp"/>
+        </RelativeLayout>
+
+    </RelativeLayout>
+</layout>

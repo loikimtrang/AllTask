@@ -1,18 +1,26 @@
 package com.example.ggmap;
 
+import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.location.Location;
 import android.os.Bundle;
+import android.view.View;
 import android.widget.Toast;
 
 import androidx.activity.EdgeToEdge;
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.ActionBarDrawerToggle;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
+import androidx.drawerlayout.widget.DrawerLayout;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.ggmap.adapter.BookmarkAdapter;
 import com.example.ggmap.adapter.CustomInfoWindowAdapter;
 import com.example.ggmap.database.BookmarkDatabase;
+import com.example.ggmap.databinding.ActivityMainBinding;
 import com.example.ggmap.model.Bookmark;
 import com.example.ggmap.utils.ImageUtils;
 import com.google.android.gms.location.FusedLocationProviderClient;
@@ -39,6 +47,8 @@ import java.util.List;
 
 public class MainActivity extends AppCompatActivity implements OnMapReadyCallback {
 
+    private ActivityMainBinding binding;
+    private BookmarkAdapter bookmarkAdapter;
     private final int FINE_PERMISSION_CODE = 1;
     private Location currentLocation;
     private GoogleMap googleMap;
@@ -47,29 +57,16 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        binding = ActivityMainBinding.inflate(getLayoutInflater());
+        setContentView(binding.getRoot());
         EdgeToEdge.enable(this);
-        setContentView(R.layout.activity_main);
+
+        setUpNavigation();
 
         Places.initialize(getApplicationContext(), "AIzaSyCZbFUXnFOuho5pSs6rN-uNU_k6R7pocYA");
         placesClient = Places.createClient(this);
         fusedLocationProviderClient = LocationServices.getFusedLocationProviderClient(this);
         getLastLocation();
-    }
-
-    private void getLastLocation() {
-
-        if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
-            ActivityCompat.requestPermissions(this, new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION}, FINE_PERMISSION_CODE);
-            return;
-        }
-        Task<Location> task = fusedLocationProviderClient.getLastLocation();
-        task.addOnSuccessListener(location -> {
-            if (location != null) {
-                currentLocation = location;
-                SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.id_map);
-                mapFragment.getMapAsync(MainActivity.this);
-            }
-        });
     }
     @Override
     public void onMapReady(@NonNull GoogleMap googleMap) {
@@ -117,7 +114,21 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         loadSavedLocations();
     }
 
+    @Override
+    protected void onResume() {
+        super.onResume();
 
+        Intent intent = getIntent();
+        double latitude = intent.getDoubleExtra("LATITUDE", 0);
+        double longitude = intent.getDoubleExtra("LONGITUDE", 0);
+
+        if (latitude != 0 && longitude != 0) {
+            LatLng position = new LatLng(latitude, longitude);
+            if (googleMap != null) {
+                googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(position, 15));
+            }
+        }
+    }
     private void saveLocation(Marker marker, String placeId, String name, String address, Bitmap image) {
         double latitude = marker.getPosition().latitude;
         double longitude = marker.getPosition().longitude;
@@ -206,6 +217,84 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                 Toast.makeText(this, "Quyền truy cập bị từ chối, vui lòng cấp quyền", Toast.LENGTH_LONG).show();
             }
         }
+    }
+    private void setUpNavigation(){
+        setSupportActionBar(binding.toolbar);
+        ActionBarDrawerToggle toggle = new ActionBarDrawerToggle(this, binding.drawerLayout, binding.toolbar,
+                R.string.navigation_drawer_open, R.string.navigation_drawer_close);
+        binding.drawerLayout.addDrawerListener(toggle);
+        toggle.syncState();
+
+        bookmarkAdapter = new BookmarkAdapter(this, this::clickShowBookmark);
+        binding.navRcv.setLayoutManager(new LinearLayoutManager(this, RecyclerView.VERTICAL, false));
+        binding.navRcv.setAdapter(bookmarkAdapter);
+
+        loadBookmarksForNavigation();
+
+        binding.drawerLayout.addDrawerListener(new DrawerLayout.DrawerListener() {
+            @Override
+            public void onDrawerSlide(@NonNull View drawerView, float slideOffset) {
+            }
+
+            @Override
+            public void onDrawerOpened(@NonNull View drawerView) {
+                loadBookmarksForNavigation();
+            }
+
+            @Override
+            public void onDrawerClosed(@NonNull View drawerView) {
+            }
+
+            @Override
+            public void onDrawerStateChanged(int newState) {
+            }
+        });
+    }
+
+    private void loadBookmarksForNavigation() {
+        new Thread(() -> {
+            BookmarkDatabase db = BookmarkDatabase.getInstance(getApplicationContext());
+            List<Bookmark> bookmarks = db.bookmarkDao().getAllBookmarks();
+
+            runOnUiThread(() -> {
+                bookmarkAdapter.setData(bookmarks);
+            });
+        }).start();
+    }
+    private void clickShowBookmark(Bookmark bookmark) {
+        if (googleMap != null) {
+            LatLng position = new LatLng(bookmark.getLatitude(), bookmark.getLongitude());
+
+            Marker marker = googleMap.addMarker(new MarkerOptions()
+                    .position(position)
+                    .title(bookmark.getPlaceId())
+                    .snippet(bookmark.getAddress())
+                    .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE)));
+
+            if (marker != null) {
+                Bitmap image = ImageUtils.loadImage(getApplicationContext(), "bookmark" + bookmark.getId() + ".png");
+                marker.setTag(image);
+                marker.showInfoWindow();
+                googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(position, 15));
+            }
+        }
+    }
+
+
+    private void getLastLocation() {
+
+        if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this, new String[]{android.Manifest.permission.ACCESS_FINE_LOCATION}, FINE_PERMISSION_CODE);
+            return;
+        }
+        Task<Location> task = fusedLocationProviderClient.getLastLocation();
+        task.addOnSuccessListener(location -> {
+            if (location != null) {
+                currentLocation = location;
+                SupportMapFragment mapFragment = (SupportMapFragment) getSupportFragmentManager().findFragmentById(R.id.id_map);
+                mapFragment.getMapAsync(MainActivity.this);
+            }
+        });
     }
 
 }

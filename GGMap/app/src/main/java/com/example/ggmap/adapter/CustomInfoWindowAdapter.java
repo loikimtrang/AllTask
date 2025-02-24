@@ -3,6 +3,7 @@ package com.example.ggmap.adapter;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
+import android.os.Looper;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.Toast;
@@ -16,6 +17,8 @@ import com.example.ggmap.model.Bookmark;
 import com.example.ggmap.databinding.LayoutInfoWindowBinding;
 import com.google.android.gms.maps.GoogleMap;
 import com.google.android.gms.maps.model.Marker;
+
+
 
 public class CustomInfoWindowAdapter implements GoogleMap.InfoWindowAdapter {
 
@@ -42,8 +45,6 @@ public class CustomInfoWindowAdapter implements GoogleMap.InfoWindowAdapter {
                     intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
 
                     mContext.startActivity(intent);
-                } else {
-                    Toast.makeText(mContext, "Không tìm thấy Bookmark", Toast.LENGTH_SHORT).show();
                 }
             }).start();
         });
@@ -53,6 +54,19 @@ public class CustomInfoWindowAdapter implements GoogleMap.InfoWindowAdapter {
     @Override
     public View getInfoContents(@NonNull Marker marker) {
         binding.tvNamePlace.setText(marker.getTitle());
+        binding.tvPhone.setText(null);
+        binding.tvNote.setText(null);
+
+        double latitude = marker.getPosition().latitude;
+        double longitude = marker.getPosition().longitude;
+
+        BookmarkDatabase db = BookmarkDatabase.getInstance(mContext);
+        Bookmark bookmark = db.bookmarkDao().findBookmarkByLocation(latitude, longitude);
+
+        if (bookmark != null) {
+            binding.tvPhone.setText(bookmark.getPhone());
+            binding.tvNote.setText(bookmark.getNote());
+        }
 
         Object imageObject = marker.getTag();
         if (imageObject instanceof Bitmap) {
@@ -63,6 +77,7 @@ public class CustomInfoWindowAdapter implements GoogleMap.InfoWindowAdapter {
 
         return binding.getRoot();
     }
+
 
     @Nullable
     @Override

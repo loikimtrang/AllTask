@@ -11,6 +11,7 @@ import java.io.IOException;
 
 public class ImageUtils {
     private static final String TAG = "ImageUtils";
+
     public static String saveImage(Context context, Bitmap bitmap, String fileName) {
         File directory = context.getFilesDir();
         File imageFile = new File(directory, fileName);
@@ -34,4 +35,20 @@ public class ImageUtils {
         }
         return null;
     }
+
+    public static void deleteImage(Context context, String fileName) {
+        File directory = context.getFilesDir();
+        File imageFile = new File(directory, fileName);
+
+        if (imageFile.exists()) {
+            if (imageFile.delete()) {
+                Log.d(TAG, "Hình ảnh đã được xóa: " + imageFile.getAbsolutePath());
+            } else {
+                Log.e(TAG, "Không thể xóa hình ảnh: " + imageFile.getAbsolutePath());
+            }
+        } else {
+            Log.e(TAG, "Hình ảnh không tồn tại: " + fileName);
+        }
+    }
 }
+

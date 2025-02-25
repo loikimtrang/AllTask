@@ -105,7 +105,7 @@ public class Bookmark implements Serializable {
         this.note = note;
     }
 
-    public String getImageFileName() {
-        return id != null ? "bookmark" + id + ".png" : null;
+    public static String generateFileName(Long id) {
+        return "bookmark" + id +".png";
     }
 }

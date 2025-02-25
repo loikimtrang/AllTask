@@ -21,22 +21,10 @@ public interface BookmarkDao {
     @Update
     void updateBookmark(Bookmark bookmark);
 
-    @Delete
-    void deleteBookmark(Bookmark bookmark);
-
-    @Query("SELECT * FROM Bookmark")
-    LiveData<List<Bookmark>> loadAll();
-
-    @Query("SELECT * FROM Bookmark WHERE id = :bookmarkId")
-    LiveData<Bookmark> loadLiveBookmark(Long bookmarkId);
-
-    @Query("SELECT * FROM Bookmark WHERE id = :bookmarkId")
-    Bookmark loadBookmark(Long bookmarkId);
-
     @Query("SELECT * FROM bookmark WHERE latitude = :latitude AND longitude = :longitude LIMIT 1")
     Bookmark findBookmarkByLocation(double latitude, double longitude);
 
     @Query("SELECT * FROM bookmark")
-    List<Bookmark> getAllBookmarks();
+    LiveData<List<Bookmark>> getAllBookmarks();
 
 }

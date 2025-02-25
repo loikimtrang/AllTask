@@ -14,6 +14,8 @@ import androidx.appcompat.app.ActionBarDrawerToggle;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.drawerlayout.widget.DrawerLayout;
+import androidx.lifecycle.LiveData;
+import androidx.lifecycle.ViewModelProvider;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -23,6 +25,7 @@ import com.example.ggmap.database.BookmarkDatabase;
 import com.example.ggmap.databinding.ActivityMainBinding;
 import com.example.ggmap.model.Bookmark;
 import com.example.ggmap.utils.ImageUtils;
+import com.example.ggmap.viewmodel.BookmarkViewModel;
 import com.google.android.gms.location.FusedLocationProviderClient;
 import com.google.android.gms.location.LocationServices;
 import com.google.android.gms.maps.CameraUpdateFactory;
@@ -53,6 +56,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
     private Location currentLocation;
     private GoogleMap googleMap;
     private PlacesClient placesClient;
+
+    private BookmarkViewModel bookmarkViewModel;
     FusedLocationProviderClient fusedLocationProviderClient;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -61,6 +66,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         setContentView(binding.getRoot());
         EdgeToEdge.enable(this);
 
+        bookmarkViewModel = new ViewModelProvider(this).get(BookmarkViewModel.class);
         setUpNavigation();
 
         Places.initialize(getApplicationContext(), "AIzaSyCZbFUXnFOuho5pSs6rN-uNU_k6R7pocYA");
@@ -79,25 +85,40 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                     .position(myPlace)
                     .title("Vị trí của tôi")
                     .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_RED)));
-            markerColorState.put(myMarker, false);
+
+            if (myMarker != null) {
+                markerColorState.put(myMarker, false);
+            }
             googleMap.moveCamera(CameraUpdateFactory.newLatLngZoom(myPlace, 15));
         }
 
         CustomInfoWindowAdapter adapter = new CustomInfoWindowAdapter(this, googleMap);
         googleMap.setInfoWindowAdapter(adapter);
 
-        googleMap.setOnMarkerClickListener(marker -> {
-            boolean isRed = Boolean.TRUE.equals(markerColorState.getOrDefault(marker, false));
+        googleMap.setOnInfoWindowClickListener(marker -> {
+            if (marker == null) return;
 
-            if (isRed) {
-                marker.setIcon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE));
-                Bitmap image = marker.getTag() instanceof Bitmap ? (Bitmap) marker.getTag() : null;
-                saveLocation(marker, marker.getTitle(), marker.getTitle(), "", image);
-            }
+            double latitude = marker.getPosition().latitude;
+            double longitude = marker.getPosition().longitude;
 
-            markerColorState.put(marker, !isRed);
-            return false;
+            new Thread(() -> {
+                Bookmark bookmark = bookmarkViewModel.getBookmarkByLocation(latitude, longitude);
+
+                if (bookmark == null) {
+                    runOnUiThread(() -> {
+                        marker.setIcon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE));
+                        Bitmap image = marker.getTag() instanceof Bitmap ? (Bitmap) marker.getTag() : null;
+                        saveLocation(marker, marker.getTitle(), marker.getTitle(), "", image);
+                    });
+                } else {
+                    Intent intent = new Intent(this, DetailsActivity.class);
+                    intent.putExtra("bookmark", bookmark);
+                    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                    startActivity(intent);
+                }
+            }).start();
         });
+
 
         googleMap.setOnPoiClickListener(poi -> {
             Marker marker = googleMap.addMarker(new MarkerOptions()
@@ -113,6 +134,7 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         loadSavedLocations();
     }
+
 
     @Override
     protected void onResume() {
@@ -134,16 +156,15 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
         double longitude = marker.getPosition().longitude;
 
         new Thread(() -> {
-            BookmarkDatabase db = BookmarkDatabase.getInstance(getApplicationContext());
 
-            Bookmark existingBookmark = db.bookmarkDao().findBookmarkByLocation(latitude, longitude);
+            Bookmark existingBookmark = bookmarkViewModel.getBookmarkByLocation(latitude, longitude);
             if (existingBookmark != null) {
                 runOnUiThread(() -> Toast.makeText(getApplicationContext(), "Vị trí này đã được lưu!", Toast.LENGTH_SHORT).show());
                 return;
             }
 
             Bookmark bookmark = new Bookmark(placeId, name, address, latitude, longitude, "", "");
-            long id = db.bookmarkDao().insertBookmark(bookmark);
+            long id = bookmarkViewModel.addBookmark(bookmark);
 
             if (image != null) {
                 String imageFileName = "bookmark" + id + ".png";
@@ -154,17 +175,15 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
 
         }).start();
     }
-
     private void loadSavedLocations() {
-        new Thread(() -> {
-            BookmarkDatabase db = BookmarkDatabase.getInstance(getApplicationContext());
-            List<Bookmark> savedBookmarks = db.bookmarkDao().getAllBookmarks();
+        LiveData<List<Bookmark>> savedBookmarks = bookmarkViewModel.getAllBookmarks();
 
-            runOnUiThread(() -> {
-                for (Bookmark bookmark : savedBookmarks) {
+        savedBookmarks.observe(this, bookmarks -> {
+            if (bookmarks != null) {
+                for (Bookmark bookmark : bookmarks) {
                     LatLng position = new LatLng(bookmark.getLatitude(), bookmark.getLongitude());
 
-                    Bitmap image = ImageUtils.loadImage(getApplicationContext(), "bookmark" + bookmark.getId() + ".png");
+                    Bitmap image = ImageUtils.loadImage(getApplicationContext(), bookmark.generateFileName(bookmark.getId()));
 
                     Marker marker = googleMap.addMarker(new MarkerOptions()
                             .position(position)
@@ -176,8 +195,8 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                         marker.setTag(image);
                     }
                 }
-            });
-        }).start();
+            }
+        });
     }
 
     private void getImagePlace(Marker marker, String placeId) {
@@ -205,9 +224,6 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             marker.showInfoWindow();
         });
     }
-
-
-
     public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         if (requestCode == FINE_PERMISSION_CODE) {
@@ -250,17 +266,14 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
             }
         });
     }
-
     private void loadBookmarksForNavigation() {
-        new Thread(() -> {
-            BookmarkDatabase db = BookmarkDatabase.getInstance(getApplicationContext());
-            List<Bookmark> bookmarks = db.bookmarkDao().getAllBookmarks();
+        LiveData<List<Bookmark>> bookmarksLiveData = bookmarkViewModel.getAllBookmarks();
 
-            runOnUiThread(() -> {
-                bookmarkAdapter.setData(bookmarks);
-            });
-        }).start();
+        bookmarksLiveData.observe(this, bookmarks -> {
+            bookmarkAdapter.setData(bookmarks);
+        });
     }
+
     private void clickShowBookmark(Bookmark bookmark) {
         if (googleMap != null) {
             LatLng position = new LatLng(bookmark.getLatitude(), bookmark.getLongitude());
@@ -272,15 +285,13 @@ public class MainActivity extends AppCompatActivity implements OnMapReadyCallbac
                     .icon(BitmapDescriptorFactory.defaultMarker(BitmapDescriptorFactory.HUE_BLUE)));
 
             if (marker != null) {
-                Bitmap image = ImageUtils.loadImage(getApplicationContext(), "bookmark" + bookmark.getId() + ".png");
+                Bitmap image = ImageUtils.loadImage(getApplicationContext(), bookmark.generateFileName(bookmark.getId()));
                 marker.setTag(image);
                 marker.showInfoWindow();
                 googleMap.animateCamera(CameraUpdateFactory.newLatLngZoom(position, 15));
             }
         }
     }
-
-
     private void getLastLocation() {
 
         if (ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, android.Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {

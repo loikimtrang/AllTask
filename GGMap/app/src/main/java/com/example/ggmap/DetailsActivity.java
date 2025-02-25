@@ -10,11 +10,13 @@ import android.widget.Toast;
 
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.lifecycle.ViewModelProvider;
 
 import com.example.ggmap.database.BookmarkDatabase;
 import com.example.ggmap.databinding.ActivityDetailsBinding;
 import com.example.ggmap.model.Bookmark;
 import com.example.ggmap.utils.ImageUtils;
+import com.example.ggmap.viewmodel.BookmarkViewModel;
 
 import java.io.IOException;
 
@@ -27,6 +29,8 @@ public class DetailsActivity extends AppCompatActivity {
     private static final int REQUEST_CAMERA = 1;
     private static final int REQUEST_GALLERY = 2;
 
+    private BookmarkViewModel bookmarkViewModel;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -34,7 +38,7 @@ public class DetailsActivity extends AppCompatActivity {
 
         binding = ActivityDetailsBinding.inflate(getLayoutInflater());
         setContentView(binding.getRoot());
-
+        bookmarkViewModel = new ViewModelProvider(this).get(BookmarkViewModel.class);
         Intent intent = getIntent();
         if (intent != null && intent.hasExtra("bookmark")) {
             bookmark = (Bookmark) intent.getSerializableExtra("bookmark");
@@ -94,8 +98,7 @@ public class DetailsActivity extends AppCompatActivity {
                 oldImagePath = newImagePath;
             }
 
-            db.bookmarkDao().updateBookmark(bookmark);
-
+            bookmarkViewModel.updateBookmark(bookmark);
             runOnUiThread(() -> {
                 Toast.makeText(this, "Cập nhật thành công!", Toast.LENGTH_SHORT).show();
 
